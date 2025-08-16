@@ -1,60 +1,119 @@
 
 # Scalable Web Application with ALB and Auto Scaling
 
-This project deploys a simple, scalable, and highly available web application on AWS using Terraform.
+This project deploys a highly available and scalable web application on AWS using Terraform. The infrastructure is designed to automatically handle changes in traffic by scaling the number of instances up or down, ensuring a consistent user experience.
+
+## Features
+
+- **High Availability**: Deployed across multiple Availability Zones to ensure the application remains available even if one zone fails.
+- **Scalability**: Automatically scales the number of EC2 instances based on CPU load, ensuring optimal performance and cost-efficiency.
+- **Automated Deployment**: Infrastructure is provisioned and managed using Terraform, allowing for repeatable and consistent deployments.
+- **Secure**: Uses security groups to control access to the instances and a dedicated VPC for network isolation.
 
 ## Architecture
 
-The architecture consists of the following components:
-- **VPC**: A dedicated Virtual Private Cloud (VPC) for the application.
-- **Public Subnets**: Two public subnets in different Availability Zones for high availability.
-- **Internet Gateway**: To provide internet access to the VPC.
-- **Route Table**: To route traffic from the subnets to the internet.
-- **Security Group**: A security group to control traffic to the EC2 instances.
-- **IAM Role**: An IAM role for the EC2 instances to allow access to other AWS services.
-- **Launch Template**: A launch template to define the configuration of the EC2 instances.
-- **Application Load Balancer (ALB)**: To distribute incoming traffic across the EC2 instances.
-- **Auto Scaling Group (ASG)**: To automatically scale the number of EC2 instances based on CPU utilization.
-- **CloudWatch Alarm**: A CloudWatch alarm to monitor the CPU utilization of the EC2 instances.
-- **SNS Topic**: An SNS topic to send notifications when the CloudWatch alarm is triggered.
+The following diagram illustrates the architecture of the web application:
+
+```mermaid
+graph TD
+    subgraph "User"
+        User[Internet User]
+    end
+
+    subgraph "AWS Infrastructure"
+        subgraph "VPC"
+            ALB[Application Load Balancer]
+            ASG[Auto Scaling Group]
+            IGW[Internet Gateway]
+            RT[Route Table]
+            SG[Security Group]
+
+            subgraph "Public Subnet (AZ-a)"
+                EC2_A[EC2 Instance]
+            end
+            subgraph "Public Subnet (AZ-b)"
+                EC2_B[EC2 Instance]
+            end
+        end
+    end
+
+    User -- HTTP Request --> IGW
+    IGW -- Routes via --> RT
+    RT -- Forwards to --> ALB
+    ALB -- Distributes Traffic --> ASG
+    ASG -- Manages --> EC2_A
+    ASG -- Manages --> EC2_B
+
+    EC2_A -- Serves Content --> ALB
+    EC2_B -- Serves Content --> ALB
+
+    SG -- Allows HTTP/SSH Inbound --> ALB
+    SG -- Allows HTTP/SSH Inbound --> EC2_A
+    SG -- Allows HTTP/SSH Inbound --> EC2_B
+```
 
 ## Prerequisites
 
-- [Terraform](httpss://www.terraform.io/downloads.html) installed.
-- [AWS CLI](httpss://aws.amazon.com/cli/) installed and configured with your AWS credentials.
-- An AWS key pair created in your desired region.
+Before you begin, ensure you have the following installed and configured:
 
-## Deployment
+- [Terraform](https://www.terraform.io/downloads.html)
+- [AWS CLI](https://aws.amazon.com/cli/)
+- An AWS account with the necessary permissions
+- A configured AWS credentials profile
 
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/your-username/scalable-web-app.git
-   cd scalable-web-app
-   ```
+## Getting Started
 
-2. **Update `variables.tf`:**
-   - `key_name`: Set to the name of your AWS key pair.
-   - `notification_email`: Set to your email address for SNS notifications.
+Follow these steps to deploy the application.
 
-3. **Initialize Terraform:**
-   ```sh
-   terraform init
-   ```
+### 1. Clone the Repository
 
-4. **Apply the Terraform configuration:**
-   ```sh
-   terraform apply
-   ```
-   Enter `yes` when prompted to confirm the deployment.
+Clone this repository to your local machine:
 
-5. **Access the web application:**
-   - After the deployment is complete, Terraform will output the DNS name of the ALB.
-   - Open the ALB DNS name in your web browser to see the "Hello World" message.
-
-## Cleanup
-
-To destroy the resources created by this project, run the following command:
 ```sh
-terraform destroy
+git clone https://github.com/trivikramm/Scalable-Web-Application-with-ALB-and-Auto-Scaling.git
+cd Scalable-Web-Application-with-ALB-and-Auto-Scaling
 ```
-Enter `yes` when prompted to confirm the deletion.
+
+### 2. Configure Variables
+
+Update the `variables.tf` file with your specific details. At a minimum, you should set the `aws_region`.
+
+### 3. Initialize Terraform
+
+Initialize the Terraform working directory to download the necessary providers:
+
+```sh
+terraform init
+```
+
+### 4. Plan the Deployment
+
+Run `terraform plan` to see the resources that will be created:
+
+```sh
+terraform plan
+```
+
+### 5. Apply the Configuration
+
+Deploy the infrastructure using the `terraform apply` command:
+
+```sh
+terraform apply --auto-approve
+```
+
+## Accessing the Application
+
+Once the deployment is complete, Terraform will output the DNS name of the Application Load Balancer. You can access the web application by pasting this URL into your browser.
+
+## Cleaning Up
+
+To avoid incurring future charges, destroy the resources you created:
+
+```sh
+terraform destroy --auto-approve
+```
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request with your improvements.
