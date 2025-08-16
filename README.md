@@ -13,44 +13,8 @@ This project deploys a highly available and scalable web application on AWS usin
 ## Architecture
 
 The following diagram illustrates the architecture of the web application:
+<img width="999" height="653" alt="Screenshot 2025-08-16 184632" src="https://github.com/user-attachments/assets/a7f47bda-dc8b-49b4-87bd-41b158ed197d" />
 
-```mermaid
-graph TD
-    subgraph "User"
-        User[Internet User]
-    end
-
-    subgraph "AWS Infrastructure"
-        subgraph "VPC"
-            ALB[Application Load Balancer]
-            ASG[Auto Scaling Group]
-            IGW[Internet Gateway]
-            RT[Route Table]
-            SG[Security Group]
-
-            subgraph "Public Subnet (AZ-a)"
-                EC2_A[EC2 Instance]
-            end
-            subgraph "Public Subnet (AZ-b)"
-                EC2_B[EC2 Instance]
-            end
-        end
-    end
-
-    User -- HTTP Request --> IGW
-    IGW -- Routes via --> RT
-    RT -- Forwards to --> ALB
-    ALB -- Distributes Traffic --> ASG
-    ASG -- Manages --> EC2_A
-    ASG -- Manages --> EC2_B
-
-    EC2_A -- Serves Content --> ALB
-    EC2_B -- Serves Content --> ALB
-
-    SG -- Allows HTTP/SSH Inbound --> ALB
-    SG -- Allows HTTP/SSH Inbound --> EC2_A
-    SG -- Allows HTTP/SSH Inbound --> EC2_B
-```
 
 ## Prerequisites
 
